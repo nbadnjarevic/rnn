@@ -3,12 +3,18 @@ import numpy as np
 
 #postavljanje hiperparametara
 max_len = 40
+#broj koraka koje moze da gleda
 step = 2
 num_units = 128
 learning_rate = 0.001
+#broj karaktera koji se analiziraju u jednom trenutku
 batch_size = 200
-epoch = 60
+#broj epoha za treniranje
+epoch = 10
+#hiperparametar za verovatnocu
 temperature = 0.5
+output_data = []
+file = open('output.txt', 'w')
 
 def read_data(file_name):
     #otvara i cita tekst fajl
@@ -63,6 +69,7 @@ def run(train_data, target_data, unique_chars, len_unique_chars):
     prediction = rnn(x, weight, bias, len_unique_chars)
     softmax = tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=y)
     cost = tf.reduce_mean(softmax)
+    #optimizuje learning rate u zavisnosti od cene
     optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate).minimize(cost)
 
     init_op = tf.global_variables_initializer()
@@ -99,6 +106,8 @@ def run(train_data, target_data, unique_chars, len_unique_chars):
             predicted_chars = unique_chars[np.argmax(probabilities)]
             seed_chars += predicted_chars
         print('Rezultat:', seed_chars)
+        output_data.append(seed_chars)
+        file.write("\n%s\n" % seed_chars)
     sess.close()
 
 
