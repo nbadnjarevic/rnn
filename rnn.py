@@ -5,12 +5,13 @@ import numpy as np
 max_len = 40
 #broj koraka koje moze da gleda
 step = 2
+#broj hidden layera
 num_units = 128
 learning_rate = 0.001
 #broj karaktera koji se analiziraju u jednom trenutku
 batch_size = 200
 #broj epoha za treniranje
-epoch = 10
+epoch = 60
 #hiperparametar za verovatnocu
 temperature = 0.5
 output_data = []
@@ -47,8 +48,11 @@ def rnn(x, weight, bias, len_unique_chars):
     x = tf.transpose(x, [1, 0, 2])
     x = tf.reshape(x, [-1, len_unique_chars])
     x = tf.split(x, max_len, 0)
-
+    #deklarisanje LSTM celije
+    #forget_bias smanjuje zaboravljanje u ranim stazama ucenja
     cell = tf.contrib.rnn.BasicLSTMCell(num_units, forget_bias=1.0)
+    #deklarisanje RNN
+    #static_rnn je skup tensora velicine [batch_size, num_units]
     outputs, states = tf.contrib.rnn.static_rnn(cell, x, dtype=tf.float32)
     prediction = tf.matmul(outputs[-1], weight) + bias
     return prediction
@@ -61,8 +65,10 @@ def sample(predicted):
     return probabilities
 
 def run(train_data, target_data, unique_chars, len_unique_chars):
+    #definisanje placeholdera ciju vrednost kasnije menjamo
     x = tf.placeholder("float", [None, max_len, len_unique_chars])
     y = tf.placeholder("float", [None, len_unique_chars])
+    #weigh i bias odgovarajuceg oblika
     weight = tf.Variable(tf.random_normal([num_units, len_unique_chars]))
     bias = tf.Variable(tf.random_normal([len_unique_chars]))
 
@@ -86,7 +92,7 @@ def run(train_data, target_data, unique_chars, len_unique_chars):
             count += batch_size
             sess.run([optimizer] ,feed_dict={x:train_batch, y:target_batch})
 
-        #get on of training set as seed
+        #uzima tekst is training set-a kao seed
         seed = train_batch[:1:]
 
         #ispisuje seme od 40 karaktera
